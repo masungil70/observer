@@ -165,123 +165,36 @@ public:
 	}
 };
 
-
-class StatisticsDisplay : public IObserver {
+class StatisticsDisplayObserver : public IObserver {
 private:
-	float _maxTemp = 0.0f;
-	float _minTemp = 100.0f;
-	float _tempSum = 0.0f;
-	int _numReadings = 0;
+	StatisticsDisplay _statisticsDisplay;
 
 public:
 	void update(const SensorData& sensorData) override {
-		update(sensorData.temp, sensorData.humidity, sensorData.pressure);
+		_statisticsDisplay.update(sensorData.temp, sensorData.humidity, sensorData.pressure);
 	}
 
-	void update(float temp, float humidity, float pressure) {
-		_tempSum += temp;
-		_numReadings++;
-
-		if (temp > _maxTemp) {
-			_maxTemp = temp;
-		}
-
-		if (temp < _minTemp) {
-			_minTemp = temp;
-		}
-
-		display();
-	}
-
-	void display() {
-		cout << "기상 통계 " << endl
-			<< "평균 기온 : " << (_tempSum / _numReadings) << "℃" << endl
-			<< "최저 기온 : " << _minTemp << "℃" << endl
-			<< "최고 기온 : " << _maxTemp << "℃" << endl << endl;
-	}
 };
 
-class CurrentConditionsDisplay : public IObserver {
+class CurrentConditionsDisplayObserver : public IObserver {
 private:
-	float _temperature;
-	float _humidity;
-	float _pressure;
+	CurrentConditionsDisplay _currentConditionsDisplay;
 
 public:
 	void update(const SensorData& sensorData) override {
-		update(sensorData.temp, sensorData.humidity, sensorData.pressure);
-	}
-
-	void update(float temperature, float humidity, float pressure) {
-		_temperature = temperature;
-		_humidity = humidity;
-		_pressure = pressure;
-		display();
-	}
-
-	void display() {
-		cout << "현재 조건 " << endl
-			<< "온도: " << _temperature << "℃" << endl
-			<< "습도: " << _humidity << "%" << endl
-			<< "기압: " << _pressure << endl << endl;
-
+		_currentConditionsDisplay.update(sensorData.temp, sensorData.humidity, sensorData.pressure);
 	}
 };
 
-class ForecastDisplay : public IObserver {
-private:
-	float _currentPressure = 29.92f;
-	float _lastPressure;
+class ForecastDisplayObserver : public IObserver {
+	ForecastDisplay _forecastDisplay;
 
 public:
 	void update(const SensorData& sensorData) override {
-		update(sensorData.temp, sensorData.humidity, sensorData.pressure);
-	}
-
-	void update(float temp, float humidity, float pressure) {
-		_lastPressure = _currentPressure;
-		_currentPressure = pressure;
-
-		display();
-	}
-
-	void display() {
-		cout << "기상 예보" << endl;
-		if (_currentPressure > _lastPressure) {
-			cout << "가는 길에 날씨 개선" << endl << endl;
-		}
-		else if (_currentPressure == _lastPressure) {
-			cout << "전과 같음" << endl << endl;
-		}
-		else if (_currentPressure < _lastPressure) {
-			cout << "선선하고 비오는 날씨에 조심하십시오" << endl << endl;
-		}
+		_forecastDisplay.update(sensorData.temp, sensorData.humidity, sensorData.pressure);
 	}
 };
 
-class StatisticsDisplay2 : public IObserver {
-private:
-	float _maxTemp = 0.0f;
-
-public:
-	void update(const SensorData& sensorData) override {
-		update(sensorData.temp);
-	}
-
-	void update(float temp) {
-
-		if (temp > _maxTemp) {
-			_maxTemp = temp;
-		}
-
-		display();
-	}
-
-	void display() {
-		cout << "기상 통계2 " << endl
-			<< "최고 기온 : " << _maxTemp << "℃" << endl << endl;
-	}
-};
 class WeatherData : public ISubject {
 private:
 	WeatherStation _weatherStation;
@@ -340,9 +253,9 @@ int main(int argc, char** argv) {
 
 	shared_ptr<WeatherData> pWeatherData = make_shared<WeatherData>();
 	//출력 장치 객체 생성
-	shared_ptr<StatisticsDisplay> pStatisticsDisplay = make_shared<StatisticsDisplay>();
-	shared_ptr<CurrentConditionsDisplay> pCurrentConditionsDisplay = make_shared<CurrentConditionsDisplay>();
-	shared_ptr<ForecastDisplay> pForecastDisplay = make_shared<ForecastDisplay>();
+	shared_ptr<StatisticsDisplayObserver> pStatisticsDisplay = make_shared<StatisticsDisplayObserver>();
+	shared_ptr<CurrentConditionsDisplayObserver> pCurrentConditionsDisplay = make_shared<CurrentConditionsDisplayObserver>();
+	shared_ptr<ForecastDisplayObserver> pForecastDisplay = make_shared<ForecastDisplayObserver>();
 
 	//출력 장치를 등록한다
 	pWeatherData->registerObserver(pStatisticsDisplay);

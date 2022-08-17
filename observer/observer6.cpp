@@ -277,7 +277,73 @@ void ForecastDisplayObserver::update() {
 	_forecastDisplay.update(sensorData.temp, sensorData.humidity, sensorData.pressure);
 }
 
+class A {
+public:
+	int* _p;
+	int ref_count;
+
+	A(int *p) : _p(p), ref_count(0) {
+		cout << "A 생성자" << endl;
+	}
+	~A() {
+		cout << "A 소멸자" << endl;
+		ref_count--;
+		if (ref_count == 0 && _p) {
+			delete [] _p;
+		}
+	}
+};
+
+void func(shared_ptr<int>& p) {
+	cout << "함수 안쪽 ~~~~\n";
+	cout << *p << endl;
+	*p = 20;
+	cout << p.use_count() << endl;
+}
+
 int main(int argc, char** argv) {
+	//delete a;
+	{
+		shared_ptr<int> p = make_shared<int>();
+		*p = 10;
+
+		cout << sizeof(p) << endl;
+		cout << sizeof(*p) << endl;
+
+		func(p);
+		
+		cout << p.use_count() << endl;
+
+		{
+			shared_ptr<int>& p1 = p;
+
+			cout << *p << endl;
+			cout << *p1 << endl;
+
+			cout << p.use_count() << endl;
+			cout << p1.use_count() << endl;
+
+			{
+				shared_ptr<int>& p2 = p;
+				shared_ptr<int>& p3 = p;
+				cout << *p2 << endl;
+				cout << *p3 << endl;
+
+				cout << p.use_count() << endl;
+				cout << p1.use_count() << endl;
+
+				cout << p2.use_count() << endl;
+				cout << p3.use_count() << endl;
+			}
+		}
+		cout << p.use_count() << endl;
+	}
+
+	
+
+
+
+
 
 	shared_ptr<WeatherData> pWeatherData = make_shared<WeatherData>();
 	//출력 장치 객체 생성

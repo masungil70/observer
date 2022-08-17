@@ -10,6 +10,54 @@
 
 using namespace std;
 
+//함수 원형 선언 
+int add(int a, int b);
+
+//함수 구현 
+int add(int a, int b) {
+	return a + b;
+}
+//
+//int main() {
+//	//함수 호출 
+//	int sum = add(10, 20);
+//}
+
+/*
+논리 :  1. read only (실수로 다른 값이 변경될 수 있다 : 논리오류)
+		2. read/write
+*/
+
+class A {
+private:
+	int _a;
+	int _b;
+
+public:
+	int getA() const {
+		//멤버 변수는 상수 
+		//멤버 함수도 상수 함수만호출 할 수 있음
+		//그 외는 오류 
+		return _a;
+	}
+
+	int func() const {
+		return _a * 10;
+	}
+
+	void setA(int a) {
+		_a = a;
+	}
+};
+
+class B {
+private:
+	A _a;
+public:
+	int getA() const {
+		return _a.func();
+	}
+};
 struct SensorData {
 	float temp;
 	float humidity; 
@@ -50,8 +98,11 @@ private:
 public:
 	Random(int from, int to) : _generator{ _rd() },
 		_distribution{from, to} {
-
 	}
+
+	//int getValue() const {
+	//	return _distribution(*const_cast<mt19937*>(&_generator));
+	//}
 
 	int getValue() const {
 		return _distribution(*const_cast<mt19937*>(&_generator));

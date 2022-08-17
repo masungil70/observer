@@ -279,18 +279,35 @@ void ForecastDisplayObserver::update() {
 
 class A {
 public:
-	int* _p;
-	int ref_count;
+	int* _a;
+	int _b;
 
-	A(int *p) : _p(p), ref_count(0) {
+	A() : _a(new int), _b(0) {
 		cout << "A 생성자" << endl;
 	}
+
+	A(int v1, int v2) : _a(new int(v1)), _b(v2) {
+		cout << "인자가 있는 A 생성자" << endl;
+	}
+
+	A(const A& r) : _a(new int(*r._a)), _b(r._b) {
+		cout << "A 복사 생성자" << endl;
+	}
+
+	// 이동 생성자 
+	A(A&& r) noexcept : _a(r._a), _b(r._b) {
+		r._a = nullptr;
+		cout << "A 이동 생성자" << endl;
+	}
 	~A() {
-		cout << "A 소멸자" << endl;
-		ref_count--;
-		if (ref_count == 0 && _p) {
-			delete [] _p;
+		if (_a) {
+			delete _a;
 		}
+	}
+
+	A func(int a, int b) {
+		A obj(a, b);
+		return obj;
 	}
 };
 
@@ -301,73 +318,118 @@ void func(shared_ptr<int>& p) {
 	cout << p.use_count() << endl;
 }
 
+void func2(unique_ptr<int> p) {
+	*p = 200;
+}
+
+void func3(A obj) {
+	cout << obj._a << endl;
+	cout << obj._b << endl;
+}
+
 int main(int argc, char** argv) {
+	A obj;
+	cout << obj._a << endl;
+	cout << obj._b << endl;
+
+	A obj2 = move(obj);
+
+	cout << obj._a << endl;
+	cout << obj._b << endl;
+
+	//*obj._a = 10;
+	//obj._b = 10;
+
+	cout << obj2._a << endl;
+	cout << obj2._b << endl;
+
+	//func3(obj);
+
+	//int a = 10;
+	//int b = 20;
+	//int c = a + b;
+
 	//delete a;
-	{
-		shared_ptr<int> p = make_shared<int>();
-		*p = 10;
 
-		cout << sizeof(p) << endl;
-		cout << sizeof(*p) << endl;
+	////delete a;
+	//{
+	//	int a = 10;
+	//	int* p1 = &a;
+	//	int* p2 = &a;
 
-		func(p);
-		
-		cout << p.use_count() << endl;
+		unique_ptr<int> b = make_unique<int>(10); //new int(10);
+		unique_ptr<int> c = move(b);
+		//*b = 200; //10 -> 200
+	//	
+		func2(move(c));
 
-		{
-			shared_ptr<int>& p1 = p;
+	//	//unique_ptr<int> p3 = move(b);
+	//	
 
-			cout << *p << endl;
-			cout << *p1 << endl;
+	//	shared_ptr<int> p = make_shared<int>();
+	//	*p = 10;
 
-			cout << p.use_count() << endl;
-			cout << p1.use_count() << endl;
+	//	cout << sizeof(p) << endl;
+	//	cout << sizeof(*p) << endl;
 
-			{
-				shared_ptr<int>& p2 = p;
-				shared_ptr<int>& p3 = p;
-				cout << *p2 << endl;
-				cout << *p3 << endl;
+	//	func(p);
+	//	
+	//	cout << p.use_count() << endl;
 
-				cout << p.use_count() << endl;
-				cout << p1.use_count() << endl;
+	//	{
+	//		shared_ptr<int>& p1 = p;
 
-				cout << p2.use_count() << endl;
-				cout << p3.use_count() << endl;
-			}
-		}
-		cout << p.use_count() << endl;
-	}
+	//		cout << *p << endl;
+	//		cout << *p1 << endl;
 
-	
+	//		cout << p.use_count() << endl;
+	//		cout << p1.use_count() << endl;
+
+	//		{
+	//			shared_ptr<int>& p2 = p;
+	//			shared_ptr<int>& p3 = p;
+	//			cout << *p2 << endl;
+	//			cout << *p3 << endl;
+
+	//			cout << p.use_count() << endl;
+	//			cout << p1.use_count() << endl;
+
+	//			cout << p2.use_count() << endl;
+	//			cout << p3.use_count() << endl;
+	//		}
+	//	}
+	//	cout << p.use_count() << endl;
+	//}
+
+	//
 
 
 
 
 
-	shared_ptr<WeatherData> pWeatherData = make_shared<WeatherData>();
-	//출력 장치 객체 생성
-	shared_ptr<StatisticsDisplayObserver> pStatisticsDisplay = make_shared<StatisticsDisplayObserver>(*pWeatherData);
-	shared_ptr<CurrentConditionsDisplayObserver> pCurrentConditionsDisplay = make_shared<CurrentConditionsDisplayObserver>(*pWeatherData);
-	shared_ptr<ForecastDisplayObserver> pForecastDisplay = make_shared<ForecastDisplayObserver>(*pWeatherData);
+	//shared_ptr<WeatherData> pWeatherData = make_shared<WeatherData>();
+	////출력 장치 객체 생성
+	//shared_ptr<StatisticsDisplayObserver> pStatisticsDisplay = make_shared<StatisticsDisplayObserver>(*pWeatherData);
+	//shared_ptr<CurrentConditionsDisplayObserver> pCurrentConditionsDisplay = make_shared<CurrentConditionsDisplayObserver>(*pWeatherData);
+	//shared_ptr<ForecastDisplayObserver> pForecastDisplay = make_shared<ForecastDisplayObserver>(*pWeatherData);
 
-	//출력 장치를 등록한다
-	pWeatherData->registerObserver(pStatisticsDisplay);
-	pWeatherData->registerObserver(pCurrentConditionsDisplay);
-	pWeatherData->registerObserver(pForecastDisplay);
+	////출력 장치를 등록한다
+	//pWeatherData->registerObserver(pStatisticsDisplay);
+	//pWeatherData->registerObserver(pCurrentConditionsDisplay);
+	//pWeatherData->registerObserver(pForecastDisplay);
 
-	//측정값을 읽는다 
-	pWeatherData->readMeasurements(); //등록된 3개의 출력 장치에 값을 출력한다
-	pWeatherData->readMeasurements();
-	pWeatherData->readMeasurements();
+	////측정값을 읽는다 
+	//pWeatherData->readMeasurements(); //등록된 3개의 출력 장치에 값을 출력한다
+	//pWeatherData->readMeasurements();
+	//pWeatherData->readMeasurements();
 
-	//출력 장치를 제거한다 
-	pWeatherData->removeObserver(pForecastDisplay);
+	////출력 장치를 제거한다 
+	//pWeatherData->removeObserver(pForecastDisplay);
 
-	//측정값을 읽는다 
-	pWeatherData->readMeasurements(); //등록된 2개의 출력 장치에 값을 출력한다
-	pWeatherData->readMeasurements();
-	pWeatherData->readMeasurements();
+	////측정값을 읽는다 
+	//pWeatherData->readMeasurements(); //등록된 2개의 출력 장치에 값을 출력한다
+	//pWeatherData->readMeasurements();
+	//pWeatherData->readMeasurements();
 
 	return 0;
 }
